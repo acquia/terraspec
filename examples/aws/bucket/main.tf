@@ -51,3 +51,9 @@ EOF
 output "bucket_id" {
   value = aws_s3_bucket.backup_bucket.id
 }
+
+output "yolo" {
+  value = {
+    a = [1,2,3]
+  }
+}

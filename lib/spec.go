@@ -195,7 +195,7 @@ func findAttribute(key, value cty.Value) cty.Value {
 		it := value.ElementIterator()
 		for it.Next() {
 			k, val := it.Element()
-			if k.AsString() == key.AsString() {
+			if k.Equals(key).True() {
 				return val
 			}
 		}
@@ -336,17 +336,6 @@ func checkRejectCollection(path cty.Path, key cty.Value, reject, found cty.Value
 
 func checkOutput(path cty.Path, expected, got cty.Value) tfdiags.Diagnostics {
 	var diags tfdiags.Diagnostics
-	var value cty.Value
-	if !got.CanIterateElements() {
-		value = got
-	} else {
-		it := got.ElementIterator()
-		if !it.Next() {
-			diags = diags.Append(ErrorDiags(path, "Planned output is empty"))
-			return diags
-		}
-		_, value = it.Element()
-	}
 
 	exp := findAttribute(cty.StringVal("value"), expected)
 	if exp.IsNull() {
@@ -354,7 +343,7 @@ func checkOutput(path cty.Path, expected, got cty.Value) tfdiags.Diagnostics {
 		diags = diags.Append(ErrorDiags(path, "Bad Assertion : Assertion on outputs should have a value parameter"))
 		return diags
 	}
-	return checkAssert(path, exp, value)
+	return checkAssert(path, exp, got)
 }
 
 // ReadSpec reads the .tfspec file and returns the resulting Spec or a Diagnostics if error occured in the process
@@ -489,7 +478,7 @@ func decodeBody(body hcl.Body, bodyType string, schemas *terraform.Schemas, ctx 
 	if provName == "output" {
 		partialSchema = &configschema.Block{
 			Attributes: map[string]*configschema.Attribute{
-				"value": {Type: cty.String, Computed: false},
+				"value": {Type: cty.DynamicPseudoType, Computed: false},
 			},
 		}
 	} else {

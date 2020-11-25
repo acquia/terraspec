@@ -32,3 +32,9 @@ EOF
 assert "output" "bucket_id" {
     value = "arn:aws:s3::testbucket"
 }
+
+assert "output" "yolo" {
+  value = {
+  a = [1,2,5,1]
+  }
+}
